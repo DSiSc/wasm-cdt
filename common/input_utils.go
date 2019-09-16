@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"os"
 	"runtime"
@@ -16,58 +17,24 @@ func GetPassPhrase(prompt string, confirmation bool) string {
 		fmt.Println(prompt)
 	}
 
-	var password string
-	fmt.Println("Passphrase: ")
-	termEcho(false)
-	defer termEcho(true)
-	_, err := fmt.Scanln(&password)
+	fmt.Print("Password: ")
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		Fatalf("Failed to read passphrase: %v", err)
 	}
-
 	if confirmation {
-		fmt.Println("Repeat passphrase: ")
-		var confirm string
-		_, err := fmt.Scanln(&confirm)
-
+		fmt.Print("\nRepeat Password: ")
+		bytePasswordConfirm, err := terminal.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			Fatalf("Failed to read passphrase confirmation: %v", err)
 		}
-		if password != confirm {
+		if string(bytePassword) != string(bytePasswordConfirm) {
 			Fatalf("Passphrases do not match")
+			return ""
 		}
+		fmt.Println("")
 	}
-	return password
-}
-
-// techEcho() - turns terminal echo on or off.
-func termEcho(on bool) {
-	// Common settings and variables for both stty calls.
-	attrs := syscall.ProcAttr{
-		Dir:   "",
-		Env:   []string{},
-		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-		Sys:   nil}
-	var ws syscall.WaitStatus
-	cmd := "echo"
-	if on == false {
-		cmd = "-echo"
-	}
-
-	// Enable/disable echoing.
-	pid, err := syscall.ForkExec(
-		"/bin/stty",
-		[]string{"stty", cmd},
-		&attrs)
-	if err != nil {
-		panic(err)
-	}
-
-	// Wait for the stty process to complete.
-	_, err = syscall.Wait4(pid, &ws, 0, nil)
-	if err != nil {
-		panic(err)
-	}
+	return string(bytePassword)
 }
 
 // Fatalf formats a message to standard error and exits the program.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -27,7 +27,7 @@ func Compile(source, folderPath string) error {
 
 	var (
 		baseInclude = currentDir + "/misc/include"
-		souceName   = strings.TrimSuffix(path.Base(source), path.Ext(source))
+		souceName   = strings.TrimSuffix(filepath.Base(source), filepath.Ext(source))
 		iRfile      = fmt.Sprintf(`%s/%s.o`, folderPath, souceName)
 		wasmfile    = fmt.Sprintf(`%s/%s.wasm`, folderPath, souceName)
 	)

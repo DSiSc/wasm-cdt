@@ -12,10 +12,6 @@ var (
 		Usage:  "Compile c/c++ file to wasm file",
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "options, op",
-				Usage: "compile `OPTIONS`",
-			},
-			cli.StringFlag{
 				Name:  "file, f",
 				Usage: "c/c++ source code `FILE`",
 			},
@@ -27,8 +23,7 @@ var (
 )
 
 func CompileSource(ctx *cli.Context) error {
-	options := ctx.String("options")
 	sourceFile := ctx.String("file")
 	outputPath := ctx.String("outpath")
-	return compiler.Compile(options, sourceFile, outputPath)
+	return compiler.Compile(sourceFile, outputPath)
 }

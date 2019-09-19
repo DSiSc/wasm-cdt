@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/DSiSc/wasm-cdt/compiler"
 	"gopkg.in/urfave/cli.v1"
+	"os"
+	"path/filepath"
 )
 
 var (
@@ -23,7 +26,11 @@ var (
 )
 
 func CompileSource(ctx *cli.Context) error {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return fmt.Errorf("failed to get lib path, as: %v", err)
+	}
 	sourceFile := ctx.String("file")
 	outputPath := ctx.String("outpath")
-	return compiler.Compile(sourceFile, outputPath)
+	return compiler.Compile(sourceFile, outputPath, dir)
 }

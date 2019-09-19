@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Compile(source, folderPath string) error {
+func Compile(source, folderPath, libPath string) error {
 	if _, err := os.Stat(source); os.IsNotExist(err) {
 		return fmt.Errorf("source file %s doesn't exist", source)
 	}
@@ -19,40 +19,30 @@ func Compile(source, folderPath string) error {
 			return fmt.Errorf("failed to create output directory %s, as: %v", folderPath, err)
 		}
 	}
-
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current path, as:%v", err)
-	}
-
 	var (
-		baseInclude = currentDir + "/misc/include"
+		baseInclude = fmt.Sprintf(`%s/misc/`, libPath)
 		souceName   = strings.TrimSuffix(filepath.Base(source), filepath.Ext(source))
-		iRfile      = fmt.Sprintf(`%s/%s.o`, folderPath, souceName)
 		wasmfile    = fmt.Sprintf(`%s/%s.wasm`, folderPath, souceName)
 	)
 
-	clang := clangCmd(source, iRfile, baseInclude)
+	clang := clangCmd(source, baseInclude, wasmfile)
 	if _, err := execCmd(clang); err != nil {
 		return fmt.Errorf("failed to compile source file, as:%v", err)
-	}
-	defer os.Remove(iRfile)
-
-	lld := wasmLdCmd(iRfile, wasmfile)
-	if _, err := execCmd(lld); err != nil {
-		return fmt.Errorf("failed to generate wasm file, as:%v", err)
 	}
 	return nil
 }
 
-func clangCmd(source, iRfile, baseInclued string) *exec.Cmd {
-	cmd := exec.Command(`clang`, fmt.Sprintf(`-I%s/compat`, baseInclued),
-		fmt.Sprintf(`-I%s/libcxx`, baseInclued), fmt.Sprintf(`-I%s/libc`, baseInclued), `-c`, `-O3`, `--target=wasm32`, `-o`, iRfile, source)
-	return cmd
-}
-
-func wasmLdCmd(iRfile, wasmfile string) *exec.Cmd {
-	cmd := exec.Command(`wasm-ld`, `--no-entry`, `--strip-all`, `--allow-undefined`, `--export-all`, iRfile, `-o`, wasmfile)
+func clangCmd(source, baseInclued, wasmfile string) *exec.Cmd {
+	cmd := exec.Command(`clang`, `--target=wasm32`, `-O3`, `-nostdlib`, `-fno-builtin`, `-ffreestanding`, `-fno-threadsafe-statics`,
+		`-nostdinc`, `-static`, `-fno-rtti`, `-fno-exceptions`, `-DBOOST_DISABLE_ASSERTS`, `-DBOOST_EXCEPTION_DISABLE`,
+		`-Wl,--gc-sections,--merge-data-segments,-zstack-size=8192`, `-Wno-unused-command-line-argument`, `-s`, `-Xlinker`, `--export=invoke`,
+		`-Xlinker`, `--no-entry`, `-Xlinker`, `--allow-undefined`,
+		fmt.Sprintf(`-I%s/include/libcxx`, baseInclued),
+		fmt.Sprintf(`-I%s/include/libc`, baseInclued),
+		fmt.Sprintf(`-I%s/include/justitia`, baseInclued),
+		fmt.Sprintf(`-L%s/lib`, baseInclued),
+		`-lc`, `-lc++`, `-o`, wasmfile,
+		fmt.Sprintf(`%s/src/justitia.c`, baseInclued), source)
 	return cmd
 }
 

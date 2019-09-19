@@ -24,6 +24,7 @@ var (
 			cli.StringFlag{
 				Name:  "endpoint, ep",
 				Usage: "endpoint used to deploy contract",
+				Value: "http://127.0.0.1:47768",
 			},
 			cli.StringFlag{
 				Name:  "network, net",

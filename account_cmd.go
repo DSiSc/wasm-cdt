@@ -8,7 +8,6 @@ import (
 	"github.com/DSiSc/wallet/utils"
 	common2 "github.com/DSiSc/wasm-cdt/common"
 	"gopkg.in/urfave/cli.v1"
-	"os"
 	"path/filepath"
 )
 
@@ -21,7 +20,7 @@ var (
 	DataDirFlag = cli.StringFlag{
 		Name:  "datadir, d",
 		Usage: "Data directory for the databases and keystore",
-		Value: filepath.Join(os.Getenv("HOME"), ".wallet"),
+		Value: filepath.Join(`/workspace/`, ".wallet"),
 	}
 
 	KeyStoreDirFlag = cli.StringFlag{

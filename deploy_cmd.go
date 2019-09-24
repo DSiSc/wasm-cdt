@@ -23,12 +23,11 @@ var (
 			},
 			cli.StringFlag{
 				Name:  "endpoint, ep",
-				Usage: "endpoint used to deploy contract",
-				Value: "http://127.0.0.1:47768",
+				Usage: "endpoint used to deploy contract(e.g. http://192.168.1.1:47768)",
 			},
 			cli.StringFlag{
 				Name:  "network, net",
-				Usage: "network id(main net:1, local test: >1, default: 2)",
+				Usage: "network id(main net:1, local test: >1)",
 				Value: "2",
 			},
 			cli.StringFlag{
